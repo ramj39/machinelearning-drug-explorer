@@ -27,7 +27,7 @@ It lets you:
 
 st.sidebar.subheader("⚠️ Disclaimer")
 st.sidebar.markdown("This app is for **educational purposes only**. Do not use for medical decisions.")
-st.sidebar.markdown("[Go to Reference Drug Explorer](http://localhost:8502)")
+#st.sidebar.markdown("[Go to Reference Drug Explorer](http://localhost:8502)")
 
 # --- Protein targets ---
 protein_options = {
