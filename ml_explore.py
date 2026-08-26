@@ -59,3 +59,4 @@ mol = Chem.MolFromSmiles(drug_info["smiles"])
 if mol:
     img = Draw.MolToImage(mol, size=(300,300))
     st.image(img, caption=f"Structure of {selected_drug}")
+st.markdown("[go to ml app](https://machinelearning-drug-explorer-lfacmax6efesnnzjzbedht.streamlit.app/)")
