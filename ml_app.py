@@ -191,3 +191,4 @@ st.download_button(
     file_name="lipinski_candidates.csv",
     mime="text/csv"
 )
+st.markdown("[go to Ref drugs explorer](https://machinelearning-drug-explorer-huusctrj9z4pvwsvspj2kv.streamlit.app/)")
