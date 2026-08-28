@@ -10,7 +10,14 @@ from sklearn.neighbors import KNeighborsRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import r2_score
 import matplotlib.pyplot as plt
-import streamlit as st
+# --- Step 1: Choose how many molecules to import ---
+num_import = st.slider(
+    "Select number of molecules to import",
+    min_value=50,
+    max_value=1000,
+    value=200,
+    step=50
+)
 
 st.title("🧪 ML Explorer")
 st.write("This page lets you select protein targets, fetch IC50 data, train ML models, and rank candidate molecules.")
@@ -27,7 +34,7 @@ It lets you:
 
 st.sidebar.subheader("⚠️ Disclaimer")
 st.sidebar.markdown("This app is for **educational purposes only**. Do not use for medical decisions.")
-#st.sidebar.markdown("[Go to Reference Drug Explorer](http://localhost:8502)")
+st.sidebar.markdown("[Go to Reference Drug Explorer](http://localhost:8502)")
 
 # --- Protein targets ---
 protein_options = {
@@ -61,6 +68,34 @@ def fetch_ic50(protein_id, limit=500):
         return df
     else:
         return pd.DataFrame(columns=["SMILES","Affinity"])
+
+# --- Fetch IC50 data ---
+df = fetch_ic50(protein_id)
+st.subheader("IC50 Data Summary")
+st.write(f"Total rows: {len(df)}")
+st.write(df.describe())
+# --- Step 3: Define slider BEFORE slicing ---
+num_rows = st.slider(
+    "Select number of rows to import",
+    min_value=10,
+    max_value=len(df),
+    value=50,
+    step=10
+)
+df1 = df.head(num_rows)   # safer than df[0:num_rows]
+
+st.subheader(f"Showing first {num_rows} rows")
+st.dataframe(df1)
+# --- Candidate DataFrame (from your model or shortlist) ---
+candidates_df = pd.DataFrame([
+    {"chembl_id": "CHEMBL1001", "SMILES": "N#CC(C#N)Cc1ccc(O)cc1", "PredictedAffinity": 6.32, "Lipinski": True},
+    {"chembl_id": "CHEMBL1002", "SMILES": "O=C(O)/C=C/c1ccc(O)cc1", "PredictedAffinity": 6.02, "Lipinski": True},
+    {"chembl_id": "CHEMBL1003", "SMILES": "N#CC(C#N)=Cc1ccc(F)cc1", "PredictedAffinity": 6.03, "Lipinski": True},
+])
+
+st.subheader("Candidate Data Summary")
+st.write(f"Total rows: {len(candidates_df)}")
+st.write(candidates_df.describe())
 
 df = fetch_ic50(protein_id)
 
@@ -160,6 +195,63 @@ st.subheader("🧪 2D Structures of Top Candidates")
 top_mols = [Chem.MolFromSmiles(s) for s in ranked.head(10)["SMILES"]]
 img = Draw.MolsToGridImage(top_mols, molsPerRow=5, subImgSize=(200,200))
 st.image(img, caption="Top candidate molecules (2D structures)")
+import streamlit as st
+import pandas as pd
+from rdkit import Chem
+from rdkit.Chem import Draw
+
+# Example candidate DataFrame
+candidates_df = pd.DataFrame([
+    {"chembl_id": "CHEMBL25", "smiles": "CN(C)C(=O)c1ccc(O)cc1", "score": 0.92},
+    {"chembl_id": "CHEMBL120", "smiles": "CCOC(=O)c1ccc(N)cc1", "score": 0.89},
+])
+
+st.title("Candidate Molecules")
+
+# Show table
+st.dataframe(candidates_df)
+import streamlit as st
+import pandas as pd
+from rdkit import Chem
+from rdkit.Chem import Draw
+
+# Example: your real results table
+candidates_df = pd.DataFrame([
+    {"chembl_id": "CHEMBL1001", "smiles": "N#CC(C#N)Cc1ccc(O)cc1", "PredictedAffinity": 6.32, "Lipinski": True},
+    {"chembl_id": "CHEMBL1002", "smiles": "O=C(O)/C=C/c1ccc(O)cc1", "PredictedAffinity": 6.02, "Lipinski": True},
+    {"chembl_id": "CHEMBL1003", "smiles": "N#CC(C#N)=Cc1ccc(F)cc1", "PredictedAffinity": 6.03, "Lipinski": True},
+])
+
+st.title("Top Candidate Molecules")
+
+# Show table
+st.dataframe(candidates_df)
+
+# Function to render molecule image
+def mol_image(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    return Draw.MolToImage(mol, size=(200,200))
+print(candidates_df.columns)
+
+st.subheader("Structures with ChEMBL Labels")
+for _, row in candidates_df.iterrows():
+    img = mol_image(row["smiles"])
+    st.image(
+    img,
+    caption=f"{row['chembl_id']} | Affinity: {row['PredictedAffinity']:.2f} | Lipinski: {row['Lipinski']}"
+)
+
+    #st.image(img, caption=f"{row['chembl_id']} | Affinity: {row['PredictedAffinity']:.2f} | Lipinski: {row['Lipinski']}")
+
+# Function to render molecule image
+def mol_image(smiles):
+    mol = Chem.MolFromSmiles(smiles)
+    return Draw.MolToImage(mol, size=(200,200))
+
+st.subheader("Structures with Labels")
+for _, row in candidates_df.iterrows():
+    img = mol_image(row["smiles"])
+    st.image(img, caption=f"{row['chembl_id']}")
 
 # --- Lipinski filter ---
 def lipinski(mol):
@@ -191,4 +283,4 @@ st.download_button(
     file_name="lipinski_candidates.csv",
     mime="text/csv"
 )
-st.markdown("[go to Ref drugs explorer](https://machinelearning-drug-explorer-huusctrj9z4pvwsvspj2kv.streamlit.app/)")
+st.write("developed by subramanian ramajaym with copilot'assistance")
